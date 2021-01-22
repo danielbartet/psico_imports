@@ -466,26 +466,34 @@ const saveEscalas = async (collection) => {
   return resultInsert
 }
 
+const savePreguntas = async (rows, collection) => {
+  let result = []
+  let count = 0
+  await rows.reduce(async (promise, el) => {
+    await promise;
+    count++
+    const resultInsert = await collection.insertOne({index: count, pregunta: el[0]});
+    console.log({index: count, pregunta: el[0]})
+    result.push({index: count, pregunta: el[0]})
+  }, Promise.resolve())
+  return result
+}
+
 /* GET home page. */
 router.get('/', async function(req, res, next) {
   const client = new MongoClient(uri, {useNewUrlParser: true, useUnifiedTopology: true});
   await client.connect();
   const database = client.db('psico');
 
-  const collection = database.collection('escalas');
+  //GUARDA ESCALAS
+  /*const collection = database.collection('escalas');
   total = await saveEscalas(collection)
-  res.json({ status: 200, total})
+  res.json({ status: 200, total})*/
   
-  //SAVE PARES
+  //GUARDA PARES
   /*const collection = database.collection('pares');
   total = await savePares(collection)
   res.json({ status: 200, total});*/
-
-  //VER RESULTADO
-  //const collection = database.collection('baremo');
-  /*const resultPto = await collection.findOne({punto: 0}).then(items => {
-    res.json({ status: 200, items});
-  })*/
   
   //GUARDA BAREMO
   /*const collection = database.collection('baremo');
@@ -493,6 +501,13 @@ router.get('/', async function(req, res, next) {
       total = await getPtos(rows, collection)
       res.json({ status: 200, total});
   })*/
+
+  //GUARDA PREGUNTAS
+  const collection = database.collection('preguntas');
+  await xlsxFile('./preguntas_psico.xlsx').then(async (rows) => {
+      total = await savePreguntas(rows, collection)
+      res.json({ status: 200, total});
+  })
 });
 
 module.exports = router;
